@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "bioinformatics-workflow": {
+      "command": "node",
+      "args": ["dist/index.js"],
+      "cwd": "./mcp_server",
+      "env": {
+        "OPENAI_API_KEY": "your_api_key_here",
+        "OPENAI_BASE_URL": "https://api.openai.com/v1",
+        "OPENAI_MODEL": "gpt-4o-mini",
+        "PROJECT_PATH": "/path/to/your/project"
+      }
+    }
+  }
+}
