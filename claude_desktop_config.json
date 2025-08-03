@@ -2,12 +2,9 @@
   "mcpServers": {
     "bioinformatics-workflow": {
       "command": "node",
-      "args": ["dist/index.js"],
+      "args": ["D:\\BioNext-mcp\\BioNext-mcp\\dist\\index.js"],
       "cwd": "D:\\BioNext-mcp\\BioNext-mcp",
       "env": {
-        "OPENAI_API_KEY": "",
-        "OPENAI_BASE_URL": "https://api.openai.com/v1",
-        "OPENAI_MODEL": "gpt-4o",
         "PROJECT_PATH": "D:\\BioNext-mcp\\BioNext-mcp\\test"
       }
     }

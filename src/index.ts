@@ -6,21 +6,24 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { OpenAIClient } from './openai-client.js';
-import { loadConfig } from './config.js';
 import { GeneratePlanRequest, GenerateScriptRequest, Step } from './types.js';
+import * as fs from 'fs';
+import * as path from 'path';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 class BioinformaticsMCPServer {
   private server: Server;
-  private openaiClient: OpenAIClient;
-  private config: any;
+  private projectPath: string;
 
   constructor() {
-    this.config = loadConfig();
+    this.projectPath = process.env.PROJECT_PATH || './test';
     this.server = new Server(
       {
         name: 'bioinformatics-workflow-server',
-        version: '1.0.0',
+        version: '2.0.0',
       },
       {
         capabilities: {
@@ -29,7 +32,6 @@ class BioinformaticsMCPServer {
       }
     );
 
-    this.openaiClient = new OpenAIClient(this.config.openai);
     this.setupHandlers();
   }
 
@@ -38,71 +40,86 @@ class BioinformaticsMCPServer {
       return {
         tools: [
           {
-            name: 'generate_plan',
-            description: 'Generate a detailed bioinformatics analysis plan based on the goal and data files',
+            name: 'analyze_bioinformatics_task',
+            description: 'Analyze user intent and create a bioinformatics workflow plan. This tool helps understand your analysis goals and prepares the workflow structure. After this, ask Claude to generate Python scripts, then use execute_claude_script to run them.',
             inputSchema: {
               type: 'object',
               properties: {
-                goal: {
+                user_request: {
                   type: 'string',
-                  description: 'The analysis goal or objective (e.g., "进行RNA-seq差异表达分析")',
+                  description: 'The user\'s bioinformatics analysis request in natural language',
                 },
-                datalist: {
+                data_files: {
                   type: 'array',
                   items: {
                     type: 'string',
                   },
-                  description: 'List of input data files with descriptions',
+                  description: 'List of input data files with descriptions or paths',
                 },
-                id: {
+                additional_context: {
                   type: 'string',
-                  description: 'Project ID (optional, will generate random if not provided)',
-                },
-                project_path: {
-                  type: 'string',
-                  description: 'Project path (optional, will use default if not provided)',
+                  description: 'Any additional context or specific requirements',
                 },
               },
-              required: ['goal', 'datalist'],
+              required: ['user_request', 'data_files'],
             },
           },
           {
-            name: 'generate_script',
-            description: 'Generate executable scripts based on the analysis plan',
+            name: 'execute_workflow',
+            description: '[DEPRECATED] Use execute_claude_script instead. This tool executes basic workflow setup but does not run actual analysis scripts.',
             inputSchema: {
               type: 'object',
               properties: {
-                plan: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    properties: {
-                      step_number: { type: 'number' },
-                      description: { type: 'string' },
-                      input_filename: {
-                        type: 'array',
-                        items: { type: 'string' },
-                      },
-                      output_filename: {
-                        type: 'array',
-                        items: { type: 'string' },
-                      },
-                      tools: { type: 'string' },
-                    },
-                    required: ['step_number', 'description', 'input_filename', 'output_filename'],
-                  },
-                  description: 'The analysis plan steps to generate scripts for',
-                },
-                id: {
+                workflow_id: {
                   type: 'string',
-                  description: 'Project ID (optional, will generate random if not provided)',
+                  description: 'The unique workflow ID to execute',
                 },
-                project_path: {
-                  type: 'string',
-                  description: 'Project path (optional, will use default if not provided)',
+                step_number: {
+                  type: 'number',
+                  description: 'Specific step to execute (optional, executes all if not provided)',
                 },
               },
-              required: ['plan'],
+              required: ['workflow_id'],
+            },
+          },
+          {
+            name: 'debug_workflow',
+            description: 'Analyze workflow execution results and provide debugging insights',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                workflow_id: {
+                  type: 'string',
+                  description: 'The workflow ID to debug',
+                },
+                error_context: {
+                  type: 'string',
+                  description: 'Additional context about the error or issue',
+                },
+              },
+              required: ['workflow_id'],
+            },
+          },
+          {
+            name: 'execute_claude_script',
+            description: '🚀 MAIN TOOL: Automatically detect and execute Python scripts generated by Claude LLM for bioinformatics tasks. This is the primary tool for running Claude-generated analysis scripts with full IO collection and debugging support.',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                claude_response: {
+                  type: 'string',
+                  description: 'The full response from Claude LLM that may contain Python scripts',
+                },
+                workflow_id: {
+                  type: 'string',
+                  description: 'Optional workflow ID to associate with this execution',
+                },
+                execution_context: {
+                  type: 'string',
+                  description: 'Context about what the script is supposed to do',
+                },
+              },
+              required: ['claude_response'],
             },
           },
         ],
@@ -114,10 +131,14 @@ class BioinformaticsMCPServer {
 
       try {
         switch (name) {
-          case 'generate_plan':
-            return await this.handleGeneratePlan(args as GeneratePlanRequest);
-          case 'generate_script':
-            return await this.handleGenerateScript(args as GenerateScriptRequest);
+          case 'analyze_bioinformatics_task':
+            return await this.handleAnalyzeTask(args);
+          case 'execute_workflow':
+            return await this.handleExecuteWorkflow(args);
+          case 'debug_workflow':
+            return await this.handleDebugWorkflow(args);
+          case 'execute_claude_script':
+            return await this.handleExecuteClaudeScript(args);
           default:
             throw new Error(`Unknown tool: ${name}`);
         }
@@ -135,69 +156,379 @@ class BioinformaticsMCPServer {
     });
   }
 
-  private async handleGeneratePlan(args: GeneratePlanRequest) {
-    const { goal, datalist, id = this.generateId(), project_path = this.config.projectPath } = args;
-
+  private async handleAnalyzeTask(args: any) {
+    const { user_request, data_files = [], additional_context = '' } = args || {};
+    const workflowId = this.generateId();
+    
     try {
-      console.error(`Generating plan for goal: ${goal}`);
-      console.error(`Data files: ${datalist.length} files`);
-
-      const planResult = await this.openaiClient.generatePlan(goal, datalist, id, project_path);
+      // 验证必需参数
+      if (!user_request) {
+        throw new Error('user_request is required');
+      }
       
-      console.error(`Plan generated successfully with ${planResult.plan?.length || 0} steps`);
+      console.error(`Analyzing bioinformatics task: ${user_request}`);
+      console.error(`Data files: ${Array.isArray(data_files) ? data_files.length : 0} files`);
+      
+      // 创建工作流目录
+      const workflowDir = path.join(this.projectPath, workflowId);
+      fs.mkdirSync(workflowDir, { recursive: true });
+      
+      // 生成详细的分析计划和脚本
+      const analysisPrompt = this.createAnalysisPrompt(user_request, data_files, additional_context, workflowId);
+      
+      // 保存分析请求信息
+      const workflowInfo = {
+        id: workflowId,
+        user_request,
+        data_files,
+        additional_context,
+        created_at: new Date().toISOString(),
+        status: 'planned',
+        workflow_dir: workflowDir
+      };
+      
+      fs.writeFileSync(
+        path.join(workflowDir, 'workflow_info.json'),
+        JSON.stringify(workflowInfo, null, 2)
+      );
 
       return {
         content: [
           {
             type: 'text',
-            text: JSON.stringify(planResult, null, 2),
+            text: `# 生物信息学工作流分析完成
+
+## 工作流ID: ${workflowId}
+
+## 用户请求分析:
+${user_request}
+
+## 数据文件:
+${Array.isArray(data_files) && data_files.length > 0 ? data_files.map((file: string, idx: number) => `${idx + 1}. ${file}`).join('\n') : '无数据文件'}
+
+## 分析计划:
+基于您的请求，我已经创建了一个完整的生物信息学工作流。
+
+**下一步操作:**
+1. 使用 \`execute_workflow\` 工具执行工作流: \`{"workflow_id": "${workflowId}"}\`
+2. 如果遇到问题，使用 \`debug_workflow\` 工具进行调试
+
+## 工作流目录:
+${workflowDir}
+
+## Claude LLM 分析提示:
+${analysisPrompt}
+
+**请告诉我您希望如何处理这个工作流 - 是立即执行还是需要先查看具体的分析步骤？**`,
           },
         ],
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      console.error(`Plan generation error: ${errorMessage}`);
-      throw new Error(`Failed to generate plan: ${errorMessage}`);
+      console.error(`Task analysis error: ${errorMessage}`);
+      throw new Error(`Failed to analyze task: ${errorMessage}`);
     }
   }
 
-  private async handleGenerateScript(args: GenerateScriptRequest) {
-    const { plan, id = this.generateId(), project_path = this.config.projectPath } = args;
-
+  private async handleExecuteWorkflow(args: any) {
+    const { workflow_id, step_number } = args || {};
+    
+    if (!workflow_id) {
+      throw new Error('workflow_id is required');
+    }
+    
     try {
-      console.error(`Generating scripts for ${plan.length} steps`);
-
-      const scriptResults = [];
-
-      for (const step of plan) {
-        console.error(`Generating script for step ${step.step_number}`);
-        
-        const scriptResult = await this.openaiClient.generateScript(step, id, project_path);
-        
-        scriptResults.push({
-          step_number: step.step_number,
-          script: scriptResult.script || [],
-          description: step.description,
-        });
+      const workflowDir = path.join(this.projectPath, workflow_id);
+      const workflowInfoPath = path.join(workflowDir, 'workflow_info.json');
+      
+      if (!fs.existsSync(workflowInfoPath)) {
+        throw new Error(`Workflow ${workflow_id} not found`);
       }
-
-      console.error(`All scripts generated successfully`);
-
+      
+      const workflowInfo = JSON.parse(fs.readFileSync(workflowInfoPath, 'utf8'));
+      
+      console.error(`Executing workflow: ${workflow_id}`);
+      
+      // 生成执行脚本 (Windows批处理)
+      const scriptPath = path.join(workflowDir, 'execute.bat');
+      const executionScript = this.generateExecutionScript(workflowInfo);
+      
+      fs.writeFileSync(scriptPath, executionScript);
+      
+      // 执行脚本 (Windows兼容)
+      const { stdout, stderr } = await execAsync(`cd /d "${workflowDir}" && execute.bat`, {
+        shell: 'cmd.exe'
+      });
+      
+      // 保存执行结果
+      const executionResult = {
+        workflow_id,
+        executed_at: new Date().toISOString(),
+        stdout,
+        stderr,
+        status: stderr ? 'error' : 'success'
+      };
+      
+      fs.writeFileSync(
+        path.join(workflowDir, 'execution_result.json'),
+        JSON.stringify(executionResult, null, 2)
+      );
+      
       return {
         content: [
           {
             type: 'text',
-            text: JSON.stringify({
-              scripts: scriptResults,
-              total_steps: plan.length,
-            }, null, 2),
+            text: `# 工作流执行完成
+
+## 工作流ID: ${workflow_id}
+
+## 执行状态: ${executionResult.status}
+
+## 标准输出:
+\`\`\`
+${stdout}
+\`\`\`
+
+## 错误输出:
+\`\`\`
+${stderr}
+\`\`\`
+
+## 结果文件位置:
+${workflowDir}
+
+${stderr ? '**检测到错误，建议使用 `debug_workflow` 工具进行调试分析。**' : '**执行成功！您可以查看结果文件或使用 `debug_workflow` 工具进行结果分析。**'}`,
           },
         ],
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      console.error(`Script generation error: ${errorMessage}`);
-      throw new Error(`Failed to generate scripts: ${errorMessage}`);
+      console.error(`Workflow execution error: ${errorMessage}`);
+      throw new Error(`Failed to execute workflow: ${errorMessage}`);
+    }
+  }
+
+  private async handleDebugWorkflow(args: any) {
+    const { workflow_id, error_context = '' } = args || {};
+    
+    if (!workflow_id) {
+      throw new Error('workflow_id is required');
+    }
+    
+    try {
+      const workflowDir = path.join(this.projectPath, workflow_id);
+      const workflowInfoPath = path.join(workflowDir, 'workflow_info.json');
+      const executionResultPath = path.join(workflowDir, 'execution_result.json');
+      
+      if (!fs.existsSync(workflowInfoPath)) {
+        throw new Error(`Workflow ${workflow_id} not found`);
+      }
+      
+      const workflowInfo = JSON.parse(fs.readFileSync(workflowInfoPath, 'utf8'));
+      let executionResult = null;
+      
+      if (fs.existsSync(executionResultPath)) {
+        executionResult = JSON.parse(fs.readFileSync(executionResultPath, 'utf8'));
+      }
+      
+      // 收集所有相关文件信息
+      const debugInfo = {
+        workflow_info: workflowInfo,
+        execution_result: executionResult,
+        error_context,
+        workflow_files: this.listWorkflowFiles(workflowDir)
+      };
+      
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `# 工作流调试报告
+
+## 工作流ID: ${workflow_id}
+
+## 原始请求:
+${workflowInfo.user_request}
+
+## 执行状态:
+${executionResult ? executionResult.status : 'Not executed yet'}
+
+## 错误分析:
+${this.analyzeErrors(executionResult, error_context)}
+
+## 建议解决方案:
+${this.generateSuggestions(workflowInfo, executionResult)}
+
+## 工作流文件:
+${debugInfo.workflow_files.map(file => `- ${file}`).join('\n')}
+
+## 详细调试信息:
+\`\`\`json
+${JSON.stringify(debugInfo, null, 2)}
+\`\`\`
+
+**请根据以上分析信息告诉Claude LLM具体的问题，我可以帮助生成修复方案或重新设计工作流。**`,
+          },
+        ],
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error(`Workflow debug error: ${errorMessage}`);
+      throw new Error(`Failed to debug workflow: ${errorMessage}`);
+    }
+  }
+
+  private async handleExecuteClaudeScript(args: any) {
+    const { claude_response, workflow_id = this.generateId(), execution_context = '' } = args || {};
+    
+    if (!claude_response) {
+      throw new Error('claude_response is required');
+    }
+    
+    try {
+      console.error(`Analyzing Claude response for Python scripts...`);
+      
+      // 检测和提取Python脚本
+      const pythonScripts = this.extractPythonScripts(claude_response);
+      
+      if (pythonScripts.length === 0) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `# Claude脚本执行结果
+
+## 检测结果: 未发现Python脚本
+
+在Claude的响应中没有检测到可执行的Python代码块。
+
+**提示**: 确保Python代码被包含在 \`\`\`python 代码块中。`,
+            },
+          ],
+        };
+      }
+
+      // 创建执行目录
+      const executionDir = path.join(this.projectPath, workflow_id);
+      fs.mkdirSync(executionDir, { recursive: true });
+      
+      const executionResults = [];
+      
+      for (let i = 0; i < pythonScripts.length; i++) {
+        const script = pythonScripts[i];
+        const scriptName = `claude_script_${i + 1}.py`;
+        const scriptPath = path.join(executionDir, scriptName);
+        
+        // 保存脚本文件
+        fs.writeFileSync(scriptPath, script.code);
+        
+        console.error(`Executing Python script ${i + 1}/${pythonScripts.length}`);
+        
+        try {
+          // 执行Python脚本 (Windows兼容)
+          const { stdout, stderr } = await execAsync(`cd /d "${executionDir}" && python "${scriptName}"`, {
+            timeout: 300000, // 5分钟超时
+            shell: 'cmd.exe'
+          });
+          
+          executionResults.push({
+            script_number: i + 1,
+            script_name: scriptName,
+            description: script.description,
+            status: 'success',
+            stdout,
+            stderr,
+            execution_time: new Date().toISOString()
+          });
+          
+        } catch (execError: any) {
+          executionResults.push({
+            script_number: i + 1,
+            script_name: scriptName,
+            description: script.description,
+            status: 'error',
+            stdout: execError.stdout || '',
+            stderr: execError.stderr || execError.message,
+            execution_time: new Date().toISOString()
+          });
+        }
+      }
+      
+      // 保存执行结果
+      const fullResult = {
+        workflow_id,
+        execution_context,
+        claude_response: claude_response.substring(0, 1000) + '...', // 截断长响应
+        scripts_found: pythonScripts.length,
+        execution_results: executionResults,
+        executed_at: new Date().toISOString()
+      };
+      
+      fs.writeFileSync(
+        path.join(executionDir, 'claude_script_results.json'),
+        JSON.stringify(fullResult, null, 2)
+      );
+      
+      // 生成报告
+      const successCount = executionResults.filter(r => r.status === 'success').length;
+      const errorCount = executionResults.filter(r => r.status === 'error').length;
+      
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `# Claude Python脚本执行报告
+
+## 工作流ID: ${workflow_id}
+
+## 执行概况:
+- 检测到 **${pythonScripts.length}** 个Python脚本
+- 成功执行: **${successCount}** 个
+- 执行失败: **${errorCount}** 个
+
+## 执行上下文:
+${execution_context}
+
+## 详细结果:
+
+${executionResults.map((result, idx) => `
+### 脚本 ${result.script_number}: ${result.script_name}
+**状态**: ${result.status === 'success' ? '✅ 成功' : '❌ 失败'}
+**描述**: ${result.description}
+
+**标准输出**:
+\`\`\`
+${result.stdout || '(无输出)'}
+\`\`\`
+
+**错误输出**:
+\`\`\`
+${result.stderr || '(无错误)'}
+\`\`\`
+`).join('\n')}
+
+## 执行目录:
+${executionDir}
+
+${errorCount > 0 ? 
+`## ⚠️ 发现错误
+有 ${errorCount} 个脚本执行失败，请检查错误信息并考虑：
+1. 检查Python环境和依赖包
+2. 验证输入数据和文件路径
+3. 检查脚本逻辑和语法
+4. 使用 \`debug_workflow\` 工具进行详细分析` :
+`## 🎉 执行成功
+所有脚本都成功执行！你可以查看执行目录中的结果文件。`}
+
+**下次如果Claude生成新的脚本，我会自动检测并执行它们！**`,
+          },
+        ],
+      };
+      
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error(`Claude script execution error: ${errorMessage}`);
+      throw new Error(`Failed to execute Claude scripts: ${errorMessage}`);
     }
   }
 
@@ -205,10 +536,296 @@ class BioinformaticsMCPServer {
     return `bio_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
+  private extractPythonScripts(text: string): Array<{code: string, description: string}> {
+    const scripts: Array<{code: string, description: string}> = [];
+    
+    // 匹配 ```python 代码块
+    const pythonCodeBlockRegex = /```python\n([\s\S]*?)```/g;
+    let match;
+    
+    while ((match = pythonCodeBlockRegex.exec(text)) !== null) {
+      const code = match[1].trim();
+      
+      // 跳过空代码块或过短的代码块
+      if (code.length < 10) continue;
+      
+      // 检查是否是生物信息学相关的代码
+      if (this.isBioinformaticsScript(code)) {
+        // 尝试提取代码前的描述
+        const beforeCode = text.substring(0, match.index);
+        const description = this.extractScriptDescription(beforeCode);
+        
+        scripts.push({
+          code,
+          description: description || '自动检测的Python脚本'
+        });
+      }
+    }
+    
+    // 也尝试匹配没有语言标识的代码块，但包含生物信息学关键词
+    const genericCodeBlockRegex = /```\n([\s\S]*?)```/g;
+    while ((match = genericCodeBlockRegex.exec(text)) !== null) {
+      const code = match[1].trim();
+      
+      if (code.length < 10) continue;
+      
+      // 检查是否看起来像Python代码且与生物信息学相关
+      if (this.looksLikePython(code) && this.isBioinformaticsScript(code)) {
+        const beforeCode = text.substring(0, match.index);
+        const description = this.extractScriptDescription(beforeCode);
+        
+        // 避免重复添加已经通过python标签提取的代码
+        const alreadyExists = scripts.some(script => 
+          this.calculateSimilarity(script.code, code) > 0.8
+        );
+        
+        if (!alreadyExists) {
+          scripts.push({
+            code,
+            description: description || '检测到的Python脚本'
+          });
+        }
+      }
+    }
+    
+    return scripts;
+  }
+
+  private isBioinformaticsScript(code: string): boolean {
+    const bioKeywords = [
+      // 生物信息学库
+      'biopython', 'pandas', 'numpy', 'matplotlib', 'seaborn', 'scipy',
+      'sklearn', 'Bio', 'pysam', 'HTSeq', 'pybedtools',
+      
+      // 生物信息学术语
+      'fastq', 'fasta', 'vcf', 'bam', 'sam', 'bed', 'gtf', 'gff',
+      'sequence', 'genome', 'gene', 'protein', 'DNA', 'RNA',
+      'alignment', 'blast', 'annotation', 'expression',
+      'variant', 'mutation', 'phylogeny', 'assembly',
+      
+      // 常见生物信息学操作
+      'SeqIO', 'read_csv', 'read_table', 'plot', 'histogram',
+      'scatter', 'heatmap', 'clustering', 'pca', 'differential',
+      
+      // 文件扩展名
+      '.fastq', '.fasta', '.vcf', '.bam', '.sam', '.bed',
+      '.gtf', '.gff', '.csv', '.tsv', '.txt'
+    ];
+    
+    const codeUpper = code.toUpperCase();
+    return bioKeywords.some(keyword => 
+      codeUpper.includes(keyword.toUpperCase())
+    );
+  }
+
+  private looksLikePython(code: string): boolean {
+    const pythonIndicators = [
+      'import ', 'from ', 'def ', 'class ', 'if __name__',
+      'print(', '.py', 'pandas', 'numpy', '#!/usr/bin/env python'
+    ];
+    
+    return pythonIndicators.some(indicator => 
+      code.includes(indicator)
+    );
+  }
+
+  private extractScriptDescription(beforeCode: string): string {
+    // 提取代码块前最近的一段文字作为描述
+    const lines = beforeCode.split('\n').reverse();
+    const descriptionLines = [];
+    
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed === '') continue;
+      
+      // 跳过markdown标记
+      if (trimmed.startsWith('#') || trimmed.startsWith('*') || 
+          trimmed.startsWith('-') || trimmed.startsWith('>')) {
+        descriptionLines.unshift(trimmed);
+        continue;
+      }
+      
+      // 如果是普通文本，添加并停止
+      if (trimmed.length > 10 && trimmed.length < 200) {
+        descriptionLines.unshift(trimmed);
+        break;
+      }
+    }
+    
+    return descriptionLines.join(' ').substring(0, 150);
+  }
+
+  private calculateSimilarity(str1: string, str2: string): number {
+    // 简单的字符串相似度计算
+    const longer = str1.length > str2.length ? str1 : str2;
+    const shorter = str1.length > str2.length ? str2 : str1;
+    
+    if (longer.length === 0) return 1.0;
+    
+    const editDistance = this.levenshteinDistance(longer, shorter);
+    return (longer.length - editDistance) / longer.length;
+  }
+
+  private levenshteinDistance(str1: string, str2: string): number {
+    const matrix = [];
+    
+    for (let i = 0; i <= str2.length; i++) {
+      matrix[i] = [i];
+    }
+    
+    for (let j = 0; j <= str1.length; j++) {
+      matrix[0][j] = j;
+    }
+    
+    for (let i = 1; i <= str2.length; i++) {
+      for (let j = 1; j <= str1.length; j++) {
+        if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j] + 1
+          );
+        }
+      }
+    }
+    
+    return matrix[str2.length][str1.length];
+  }
+
+  private createAnalysisPrompt(userRequest: string, dataFiles: string[], additionalContext: string, workflowId: string): string {
+    return `# 生物信息学工作流分析
+
+## 用户请求:
+${userRequest}
+
+## 数据文件:
+${Array.isArray(dataFiles) && dataFiles.length > 0 ? dataFiles.map((file, idx) => `${idx + 1}. ${file}`).join('\n') : '无数据文件'}
+
+## 附加信息:
+${additionalContext}
+
+## 工作流ID:
+${workflowId}
+
+---
+
+**Claude LLM，请基于以上信息：**
+
+1. **分析用户意图** - 理解用户想要进行什么类型的生物信息学分析
+2. **设计分析流程** - 创建详细的分析步骤
+3. **生成具体脚本** - 为每个步骤生成可执行的命令
+4. **考虑数据类型** - 根据文件类型选择合适的工具和参数
+
+请提供：
+- 详细的分析计划
+- 每个步骤的具体命令
+- 预期的输出文件
+- 可能遇到的问题和解决方案
+
+这将帮助我生成完整的可执行工作流。`;
+  }
+
+  private generateExecutionScript(workflowInfo: any): string {
+    // Windows批处理脚本模板
+    const script = `@echo off
+REM 生物信息学工作流执行脚本
+REM 工作流ID: ${workflowInfo.id}
+REM 创建时间: ${workflowInfo.created_at}
+
+echo 开始执行生物信息学工作流: ${workflowInfo.id}
+echo 用户请求: ${workflowInfo.user_request}
+echo 开始时间: %date% %time%
+
+REM 创建输出目录
+if not exist output mkdir output
+if not exist logs mkdir logs
+
+REM 记录系统信息
+echo 系统信息: > logs\\system_info.log
+systeminfo >> logs\\system_info.log
+echo. >> logs\\system_info.log
+
+REM 检查Python是否可用
+echo 检查工具可用性: > logs\\tools_check.log
+python --version >nul 2>&1 && (
+    echo Python: 可用 >> logs\\tools_check.log
+) || (
+    echo Python: 不可用 >> logs\\tools_check.log
+)
+
+pip --version >nul 2>&1 && (
+    echo pip: 可用 >> logs\\tools_check.log
+) || (
+    echo pip: 不可用 >> logs\\tools_check.log
+)
+
+echo 基础检查完成，工作流准备就绪
+echo 数据文件:
+${Array.isArray(workflowInfo.data_files) && workflowInfo.data_files.length > 0 ? workflowInfo.data_files.map((file: string, idx: number) => `echo ${idx + 1}. ${file}`).join('\n') : 'echo 无数据文件'}
+
+echo 结束时间: %date% %time%
+echo 工作流执行完成
+`;
+
+    return script;
+  }
+
+  private listWorkflowFiles(workflowDir: string): string[] {
+    try {
+      return fs.readdirSync(workflowDir, { recursive: true }).map(file => String(file));
+    } catch (error) {
+      return [];
+    }
+  }
+
+  private analyzeErrors(executionResult: any, errorContext: string): string {
+    if (!executionResult) {
+      return "工作流尚未执行";
+    }
+
+    if (executionResult.status === 'success') {
+      return "工作流执行成功，无错误";
+    }
+
+    let analysis = "检测到以下问题:\n";
+    
+    if (executionResult.stderr) {
+      analysis += `\n**标准错误输出:**\n${executionResult.stderr}\n`;
+    }
+
+    if (errorContext) {
+      analysis += `\n**用户提供的错误信息:**\n${errorContext}\n`;
+    }
+
+    return analysis;
+  }
+
+  private generateSuggestions(workflowInfo: any, executionResult: any): string {
+    let suggestions = "建议的解决方案:\n\n";
+
+    suggestions += "1. **检查工具安装** - 确保所需的生物信息学工具已正确安装\n";
+    suggestions += "2. **验证数据文件** - 确认输入文件存在且格式正确\n";
+    suggestions += "3. **检查文件路径** - 确保所有文件路径都是正确的\n";
+    suggestions += "4. **查看日志文件** - 检查工作流目录中的日志文件获取更多信息\n";
+
+    if (executionResult && executionResult.stderr) {
+      suggestions += "5. **分析错误信息** - 将错误信息提供给Claude LLM进行详细分析\n";
+    }
+
+    suggestions += "\n**下一步行动:**\n";
+    suggestions += "- 将详细错误信息告诉Claude LLM\n";
+    suggestions += "- 请求生成修复后的工作流\n";
+    suggestions += "- 考虑简化分析流程或使用替代工具\n";
+
+    return suggestions;
+  }
+
   async run() {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    console.error('Bioinformatics MCP Server running on stdio');
+    console.error('Bioinformatics MCP Server v2.0 running on stdio');
   }
 }
 
