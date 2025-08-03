@@ -1,7 +1,7 @@
 {
   "name": "bioinformatics-mcp-server",
   "version": "1.0.0",
-  "description": "MCP server for bioinformatics workflow planning and script generation",
+  "description": "MCP server for intelligent Python script execution in bioinformatics workflows",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
@@ -10,15 +10,13 @@
     "dev": "tsc && node dist/index.js"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^0.5.0",
-    "axios": "^1.6.0",
-    "dotenv": "^16.3.0"
+    "@modelcontextprotocol/sdk": "^0.5.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0"
   },
-  "keywords": ["mcp", "bioinformatics", "workflow", "planning"],
+  "keywords": ["mcp", "bioinformatics", "python", "claude", "automation"],
   "author": "Your Name",
   "license": "MIT"
 }

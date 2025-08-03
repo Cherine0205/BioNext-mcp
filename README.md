@@ -1,6 +1,6 @@
 # 生物信息学工作流MCP服务器
 
-这是一个基于Model Context Protocol (MCP)的生物信息学工作流服务器，为大语言模型提供两个核心工具：计划生成和脚本生成。
+这是一个基于Model Context Protocol (MCP)的生物信息学工作流服务器，专为Claude Desktop设计，提供智能的Python脚本自动执行功能。
 
 ## 功能特性
 
@@ -39,36 +39,37 @@
 - **完整工作流**: 从分析到执行到调试的完整流程
 - **安全隔离**: 每个工作流在独立目录中执行
 
-## 安装和配置
+## 快速开始
 
-1. 安装依赖：
+### 1. 安装和构建
 ```bash
-cd mcp_server
 npm install
-```
-
-2. 配置环境变量：
-```bash
-cp .env.example .env
-# 编辑.env文件，设置您的API密钥和配置
-```
-
-3. 构建项目：
-```bash
 npm run build
 ```
 
-4. 启动服务器：
-```bash
-npm start
+### 2. 配置Claude Desktop
+在Claude Desktop配置文件中添加：
+```json
+{
+  "mcpServers": {
+    "bioinformatics-workflow": {
+      "command": "node",
+      "args": ["path/to/BioNext-mcp/dist/index.js"],
+      "cwd": "path/to/BioNext-mcp",
+      "env": {
+        "PROJECT_PATH": "path/to/your/analysis/directory"
+      }
+    }
+  }
+}
 ```
 
-## 环境变量配置
+### 3. 重启Claude Desktop
 
-- `OPENAI_API_KEY`: OpenAI API密钥
-- `OPENAI_BASE_URL`: API基础URL（默认为OpenAI官方API）
-- `OPENAI_MODEL`: 使用的模型（默认gpt-4o-mini）
-- `PROJECT_PATH`: 项目根路径
+### 4. 开始使用
+1. 向Claude描述你的生物信息学需求
+2. 当Claude生成Python脚本时，使用`execute_claude_script`工具自动执行
+3. 查看详细的执行报告和结果
 
 ## 支持的生物信息学工具
 
