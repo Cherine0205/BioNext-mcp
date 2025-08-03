@@ -387,6 +387,16 @@ ${JSON.stringify(debugInfo, null, 2)}
     
     try {
       console.error(`Analyzing Claude response for Python scripts...`);
+      console.error(`Response length: ${claude_response.length} characters`);
+      
+      // 调试：保存原始响应到文件
+      const debugDir = path.join(this.projectPath, workflow_id);
+      fs.mkdirSync(debugDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(debugDir, 'debug_claude_response.txt'),
+        claude_response,
+        'utf8'
+      );
       
       // 检测和提取Python脚本
       const pythonScripts = this.extractPythonScripts(claude_response);
@@ -419,16 +429,26 @@ ${JSON.stringify(debugInfo, null, 2)}
         const scriptName = `claude_script_${i + 1}.py`;
         const scriptPath = path.join(executionDir, scriptName);
         
-        // 保存脚本文件
-        fs.writeFileSync(scriptPath, script.code);
+        // 保存脚本文件 (使用UTF-8编码)
+        fs.writeFileSync(scriptPath, script.code, 'utf8');
         
         console.error(`Executing Python script ${i + 1}/${pythonScripts.length}`);
         
         try {
+          // 检测可用的Python命令
+          const pythonCommand = await this.detectPythonCommand();
+          
           // 执行Python脚本 (Windows兼容)
-          const { stdout, stderr } = await execAsync(`cd /d "${executionDir}" && python "${scriptName}"`, {
+          const pythonCmd = process.platform === 'win32' ? 
+            `cd /d "${executionDir}" && ${pythonCommand} "${scriptName}"` :
+            `cd "${executionDir}" && ${pythonCommand} "${scriptName}"`;
+          
+          console.error(`Executing command: ${pythonCmd}`);
+          
+          const { stdout, stderr } = await execAsync(pythonCmd, {
             timeout: 300000, // 5分钟超时
-            shell: 'cmd.exe'
+            shell: 'cmd.exe',
+            encoding: 'utf8'
           });
           
           executionResults.push({
@@ -534,6 +554,51 @@ ${errorCount > 0 ?
 
   private generateId(): string {
     return `bio_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  private async detectPythonCommand(): Promise<string> {
+    const pythonCommands = ['python', 'python3', 'py'];
+    
+    for (const cmd of pythonCommands) {
+      try {
+        const { stdout } = await execAsync(`${cmd} --version`, {
+          timeout: 5000,
+          shell: 'cmd.exe'
+        });
+        if (stdout) {
+          console.error(`Found Python: ${cmd} - ${stdout.trim()}`);
+          return cmd;
+        }
+      } catch (error) {
+        console.error(`${cmd} not available: ${error instanceof Error ? error.message : error}`);
+      }
+    }
+    
+    // 如果都不可用，尝试常见的完整路径
+    const fullPaths = [
+      'C:\\Python39\\python.exe',
+      'C:\\Python38\\python.exe',
+      'C:\\Python310\\python.exe',
+      'C:\\Python311\\python.exe',
+      'C:\\Users\\%USERNAME%\\AppData\\Local\\Programs\\Python\\Python39\\python.exe'
+    ];
+    
+    for (const fullPath of fullPaths) {
+      try {
+        const { stdout } = await execAsync(`"${fullPath}" --version`, {
+          timeout: 5000,
+          shell: 'cmd.exe'
+        });
+        if (stdout) {
+          console.error(`Found Python at full path: ${fullPath} - ${stdout.trim()}`);
+          return `"${fullPath}"`;
+        }
+      } catch (error) {
+        // 继续尝试下一个路径
+      }
+    }
+    
+    throw new Error('No Python interpreter found. Please ensure Python is installed and available in PATH.');
   }
 
   private extractPythonScripts(text: string): Array<{code: string, description: string}> {

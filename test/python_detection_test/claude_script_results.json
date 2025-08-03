@@ -1,0 +1,18 @@
+{
+  "workflow_id": "python_detection_test",
+  "execution_context": "Testing improved Python detection",
+  "claude_response": "Let me create a simple test script to verify the Python detection and execution:\n\n```python\nprint(\"=== BioNext MCP Test ===\")\nprint(\"Python execution test\")\n\nimport pandas as pd\nimport sys\n\nprint(f\"Python version: {sys.version}\")\nprint(\"Testing pandas...\")\n\ndata = pd.DataFrame({\n    'gene': ['GENE1', 'GENE2'],\n    'expression': [10.5, 20.3]\n})\nprint(data)\nprint(\"=== Test completed ===\")\n```...",
+  "scripts_found": 1,
+  "execution_results": [
+    {
+      "script_number": 1,
+      "script_name": "claude_script_1.py",
+      "description": "Let me create a simple test script to verify the Python detection and execution:",
+      "status": "error",
+      "stdout": "",
+      "stderr": "Command failed: cd /d \"D:\\BioNext-mcp\\BioNext-mcp\\test\\python_detection_test\" && python \"claude_script_1.py\"\n",
+      "execution_time": "2025-08-03T21:06:35.268Z"
+    }
+  ],
+  "executed_at": "2025-08-03T21:06:35.268Z"
+}
