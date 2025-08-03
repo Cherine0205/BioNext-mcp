@@ -59,4 +59,10 @@ coverage/
 # Yarn Integrity file
 .yarn-integrity
 
-/test
+# Test execution directories (but keep test files)
+/test/bio_*
+
+# Local test and config files
+test_error_fix.js
+claude_desktop_config.json
+test_windows_compatibility.md
