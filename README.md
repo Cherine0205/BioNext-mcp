@@ -6,6 +6,8 @@
 [![Python](https://img.shields.io/badge/Python-3.9+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Windows](https://img.shields.io/badge/Windows-10%2F11-0078D4?logo=windows&logoColor=white)](https://www.microsoft.com/windows/)
 
+**中文** | [English](README_EN.md)
+
 ## 🎯 这是什么？
 
 BioNext-MCP让您可以通过与Claude Desktop的自然语言对话来完成复杂的生物信息学分析，无需编写任何代码！
