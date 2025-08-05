@@ -1,75 +1,75 @@
-# BioNext-MCP：智能生物信息学分析助手
+# BioNext-MCP: Intelligent Bioinformatics Analysis Assistant
 
-> 通过Claude Desktop进行生物信息学分析的最简单方式 - 只需用中文对话，无需编程！
+> The simplest way to perform bioinformatics analysis through Claude Desktop - just chat in natural language, no programming required!
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/Python-3.9+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Windows](https://img.shields.io/badge/Windows-10%2F11-0078D4?logo=windows&logoColor=white)](https://www.microsoft.com/windows/)
 
-**中文** | [English](README_EN.md)
+[中文版](README_CN.md) | **English**
 
-## 🎯 这是什么？
+## 🎯 What is this?
 
-BioNext-MCP让您可以通过与Claude Desktop的自然语言对话来完成复杂的生物信息学分析，无需编写任何代码！
+BioNext-MCP allows you to perform complex bioinformatics analysis through natural language conversations with Claude Desktop, without writing any code!
 
-**简单来说：**
-- 🗣️ 用中文告诉Claude你想分析什么数据
-- 🤖 Claude自动生成专业的Python分析脚本
-- ⚡ 系统自动执行脚本并展示结果
-- 📊 获得美观的HTML报告和可视化图表
+**Simply put:**
+- 🗣️ Tell Claude what data you want to analyze in plain English
+- 🤖 Claude automatically generates professional Python analysis scripts
+- ⚡ System automatically executes scripts and displays results
+- 📊 Get beautiful HTML reports and visualization charts
 
-## ✨ 主要功能
+## ✨ Key Features
 
-### 🧬 支持的分析类型
-- **单细胞RNA测序** (scRNA-seq) - 细胞聚类、差异表达、轨迹分析
-- **基因组学** - 变异分析、注释、功能富集
-- **转录组学** - 差异表达、通路分析、共表达网络
-- **蛋白质组学** - 蛋白质鉴定、定量分析
-- **多组学整合** - 数据融合、关联分析
+### 🧬 Supported Analysis Types
+- **Single-cell RNA sequencing** (scRNA-seq) - Cell clustering, differential expression, trajectory analysis
+- **Genomics** - Variant analysis, annotation, functional enrichment
+- **Transcriptomics** - Differential expression, pathway analysis, co-expression networks
+- **Proteomics** - Protein identification, quantitative analysis
+- **Multi-omics integration** - Data fusion, correlation analysis
 
-### 🎨 智能特性
-- **自动环境配置** - 检测Python，自动安装所需包（pandas, numpy, matplotlib等）
-- **中文无乱码** - 完美支持中文输入输出
-- **可视化优先** - 自动生成图表并在HTML报告中展示
-- **质量保证** - 注重代码完整性和分析准确性
-- **错误处理** - 智能诊断问题并提供解决建议
+### 🎨 Smart Features
+- **Automatic environment setup** - Detects Python, auto-installs required packages (pandas, numpy, matplotlib, etc.)
+- **UTF-8 encoding support** - Perfect support for international characters
+- **Visualization-first** - Automatically generates charts and displays them in HTML reports
+- **Quality assurance** - Focuses on code completeness and analysis accuracy
+- **Error handling** - Smart diagnosis of issues with solution suggestions
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
-### 第一步：安装Python环境
+### Step 1: Install Python Environment
 
-#### 推荐方式：从官网安装
-1. 访问 [https://www.python.org/downloads/](https://www.python.org/downloads/)
-2. 下载Python 3.9或更高版本
-3. 安装时**务必勾选 "Add Python to PATH"**
+#### Recommended: Official Website Installation
+1. Visit [https://www.python.org/downloads/](https://www.python.org/downloads/)
+2. Download Python 3.9 or higher
+3. **Make sure to check "Add Python to PATH" during installation**
 
-#### 验证安装
-打开命令提示符，输入：
+#### Verify Installation
+Open command prompt and type:
 ```bash
 python --version
 ```
-看到版本信息说明安装成功！
+If you see version information, installation was successful!
 
-### 第二步：安装BioNext-MCP
+### Step 2: Install BioNext-MCP
 
-1. **下载项目**
+1. **Download Project**
 ```bash
 git clone https://github.com/your-username/BioNext-mcp.git
 cd BioNext-mcp
 ```
 
-2. **安装依赖**
+2. **Install Dependencies**
 ```bash
 npm install
 npm run build
 ```
 
-### 第三步：配置Claude Desktop
+### Step 3: Configure Claude Desktop
 
-1. **找到配置文件**
+1. **Find Configuration File**
    - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 
-2. **添加配置**
+2. **Add Configuration**
 ```json
 {
   "mcpServers": {
@@ -85,140 +85,140 @@ npm run build
 }
 ```
 
-**重要：** 
-- 将路径替换为你的实际安装路径
-- 将分析目录设置为你希望保存结果的位置
+**Important:** 
+- Replace paths with your actual installation paths
+- Set analysis directory to where you want results saved
 
-3. **重启Claude Desktop**
+3. **Restart Claude Desktop**
 
-## 💡 如何使用
+## 💡 How to Use
 
-### 基础对话流程
+### Basic Conversation Flow
 
-1. **描述你的分析需求**
+1. **Describe Your Analysis Needs**
 ```
-我有一个单细胞RNA测序数据文件data.h5ad，想要进行细胞聚类分析和差异表达分析
-```
-
-2. **Claude会生成分析脚本并自动执行**
-3. **获得详细的HTML报告**，包含：
-   - 执行结果和统计信息
-   - 生成的图表和可视化
-   - 完整的分析日志
-
-### 实用示例
-
-#### 🧪 单细胞分析
-```
-请帮我分析这个scRNA-seq数据：
-- 文件：C:\data\pbmc3k.h5ad
-- 需要：质量控制、标准化、聚类、标记基因识别
-- 输出：UMAP图、聚类热图、差异表达基因列表
+I have a single-cell RNA sequencing data file data.h5ad, and I want to perform cell clustering analysis and differential expression analysis
 ```
 
-#### 🧬 基因表达分析
+2. **Claude will generate analysis scripts and execute them automatically**
+3. **Get detailed HTML reports** including:
+   - Execution results and statistics
+   - Generated charts and visualizations
+   - Complete analysis logs
+
+### Practical Examples
+
+#### 🧪 Single-cell Analysis
 ```
-我有两组RNA-seq样本的表达矩阵：
-- 对照组：control_samples.csv
-- 处理组：treatment_samples.csv
-- 分析：差异表达、GO富集、KEGG通路分析
-- 可视化：火山图、热图、通路图
+Please help me analyze this scRNA-seq data:
+- File: C:\data\pbmc3k.h5ad
+- Need: quality control, normalization, clustering, marker gene identification
+- Output: UMAP plot, clustering heatmap, differential expression gene list
 ```
 
-#### 📊 数据探索
+#### 🧬 Gene Expression Analysis
 ```
-帮我探索这个基因表达数据集：
-- 文件：gene_expression.csv
-- 需要：数据概览、相关性分析、PCA分析
-- 生成：统计摘要、相关性热图、PCA图
+I have RNA-seq expression matrices from two groups:
+- Control group: control_samples.csv
+- Treatment group: treatment_samples.csv
+- Analysis: differential expression, GO enrichment, KEGG pathway analysis
+- Visualization: volcano plot, heatmap, pathway diagrams
 ```
 
-## 🎨 获得精美报告
+#### 📊 Data Exploration
+```
+Help me explore this gene expression dataset:
+- File: gene_expression.csv
+- Need: data overview, correlation analysis, PCA analysis
+- Generate: statistical summary, correlation heatmap, PCA plot
+```
 
-### HTML报告特性
-- **📊 可视化画廊** - 自动检测并展示生成的图片
-- **🔍 交互式查看** - 点击图片放大查看
-- **📝 详细日志** - 完整的执行过程记录
-- **📈 统计摘要** - 脚本执行状态和性能指标
+## 🎨 Beautiful Reports
 
-### 自动打开浏览器
-- 分析完成后自动在浏览器中打开报告
-- 如果未自动打开，可手动打开生成的HTML文件
+### HTML Report Features
+- **📊 Visualization Gallery** - Automatically detects and displays generated images
+- **🔍 Interactive Viewing** - Click images to zoom and view
+- **📝 Detailed Logs** - Complete execution process records
+- **📈 Statistical Summary** - Script execution status and performance metrics
 
-## 🛠️ 常见问题
+### Automatic Browser Opening
+- Reports automatically open in browser after analysis completion
+- If not auto-opened, manually open the generated HTML file
 
-### Python相关
-**Q: 提示找不到Python？**
-A: 确保Python已安装并添加到PATH环境变量中
+## 🛠️ Common Issues
 
-**Q: 包安装失败？**
-A: 系统会自动重试，也可以手动运行 `pip install 包名`
+### Python-related
+**Q: "Python not found" error?**
+A: Ensure Python is installed and added to PATH environment variable
 
-### 分析相关
-**Q: 脚本执行失败？**
+**Q: Package installation fails?**
+A: System will automatically retry, or manually run `pip install package_name`
+
+### Analysis-related
+**Q: Script execution fails?**
 A: 
-- 检查数据文件路径是否正确
-- 确认数据格式是否符合要求
-- 查看错误日志获取详细信息
+- Check if data file paths are correct
+- Confirm data format meets requirements
+- Check error logs for detailed information
 
-**Q: 没有生成HTML报告？**
-A: HTML报告只在所有脚本成功执行时生成，请先修复执行错误
+**Q: No HTML report generated?**
+A: HTML reports are only generated when all scripts execute successfully, fix execution errors first
 
-### 数据格式
-**Q: 支持哪些数据格式？**
+### Data Formats
+**Q: What data formats are supported?**
 A: 
-- CSV, TSV, Excel文件
-- HDF5格式（.h5, .h5ad）
-- FASTA, FASTQ序列文件
-- VCF变异文件
-- 其他常见生物信息学格式
+- CSV, TSV, Excel files
+- HDF5 format (.h5, .h5ad)
+- FASTA, FASTQ sequence files
+- VCF variant files
+- Other common bioinformatics formats
 
-## 🎯 使用技巧
+## 🎯 Usage Tips
 
-### 1. 明确描述需求
+### 1. Clear Description of Needs
 ```
-✅ 好的描述：
-"分析单细胞数据，进行质量控制（过滤低质量细胞），标准化，降维（PCA+UMAP），聚类（leiden算法），找出每个cluster的marker基因"
+✅ Good description:
+"Analyze single-cell data, perform quality control (filter low-quality cells), normalization, dimensionality reduction (PCA+UMAP), clustering (leiden algorithm), find marker genes for each cluster"
 
-❌ 模糊描述：
-"分析一下这个数据"
+❌ Vague description:
+"Analyze this data"
 ```
 
-### 2. 提供完整文件路径
+### 2. Provide Complete File Paths
 ```
-✅ 使用绝对路径：
+✅ Use absolute paths:
 "C:\Users\username\data\sample.h5ad"
 
-❌ 相对路径可能出错：
+❌ Relative paths may fail:
 "./data/sample.h5ad"
 ```
 
-### 3. 指定输出需求
+### 3. Specify Output Requirements
 ```
-✅ 明确输出：
-"生成UMAP图、热图、保存结果到CSV文件"
+✅ Clear output:
+"Generate UMAP plot, heatmap, save results to CSV file"
 
-❌ 不明确：
-"做一些可视化"
+❌ Unclear:
+"Do some visualization"
 ```
 
-### 4. 分步骤分析
-对于复杂分析，可以分多次对话：
-1. 第一次：数据加载和质量控制
-2. 第二次：标准化和降维
-3. 第三次：聚类和可视化
-4. 第四次：差异分析
+### 4. Step-by-step Analysis
+For complex analyses, break into multiple conversations:
+1. First: Data loading and quality control
+2. Second: Normalization and dimensionality reduction
+3. Third: Clustering and visualization
+4. Fourth: Differential analysis
 
-## 🎉 开始你的生物信息学之旅
+## 🎉 Start Your Bioinformatics Journey
 
-现在你已经准备好了！打开Claude Desktop，告诉它你想分析什么数据，让AI为你完成复杂的生物信息学分析吧！
+You're ready now! Open Claude Desktop, tell it what data you want to analyze, and let AI handle the complex bioinformatics analysis for you!
 
 ---
 
-## 📞 获取帮助
+## 📞 Get Help
 
-- **GitHub Issues**: 报告问题或建议改进
-- **文档**: 查看详细的使用文档
-- **示例**: 参考示例分析案例
+- **GitHub Issues**: Report problems or suggest improvements
+- **Documentation**: View detailed usage documentation
+- **Examples**: Reference example analysis cases
 
-**记住：** 用自然语言描述你的分析需求，Claude会为你处理所有技术细节！🚀
+**Remember:** Describe your analysis needs in natural language, Claude will handle all the technical details for you! 🚀
