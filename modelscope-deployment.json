@@ -1,0 +1,117 @@
+{
+  "name": "bioinformatics-workflow",
+  "version": "2.2.0",
+  "description": "🧬 生物信息学MCP服务器 - 专为ModelScope设计的智能生物数据分析工具",
+  "type": "mcp-server",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc && node dist/index.js",
+    "install-deps": "npm install && npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "keywords": ["mcp", "bioinformatics", "python", "single-cell", "genomics", "proteomics", "modelscope"],
+  "author": "BioNext Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/bioinformatics-mcp-server.git"
+  },
+  "homepage": "https://modelscope.cn/mcp/servers/bioinformatics-workflow",
+  "bugs": {
+    "url": "https://github.com/your-username/bioinformatics-mcp-server/issues"
+  },
+  "mcp": {
+    "tools": [
+      {
+        "name": "analyze_bioinformatics_task",
+        "description": "🧬 生物信息学分析任务规划器 - 分析用户意图并创建生物信息学工作流计划。支持单细胞RNA测序、基因表达、基因组学、蛋白质组学等多种数据类型。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "user_request": {
+              "type": "string",
+              "description": "用户的生物信息学分析请求（中文描述）"
+            },
+            "data_files": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "输入数据文件路径列表"
+            },
+            "additional_context": {
+              "type": "string",
+              "description": "额外的上下文信息或特定要求"
+            }
+          },
+          "required": ["user_request", "data_files"]
+        }
+      },
+      {
+        "name": "debug_workflow",
+        "description": "🔧 工作流调试工具 - 分析工作流执行结果并提供调试建议",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "workflow_id": {
+              "type": "string",
+              "description": "要调试的工作流ID"
+            },
+            "error_context": {
+              "type": "string",
+              "description": "关于错误或问题的额外上下文"
+            }
+          },
+          "required": ["workflow_id"]
+        }
+      },
+      {
+        "name": "execute_claude_script",
+        "description": "🚀 生物信息学脚本执行器 - 自动检测并执行Claude生成的Python脚本。功能包括：✅ 自动检测Python环境 ✅ 自动安装所需包（pandas, numpy, scanpy等） ✅ 完整的执行日志和错误处理 ✅ HTML报告生成和自动浏览器打开",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "claude_response": {
+              "type": "string",
+              "description": "包含Python脚本的Claude响应内容"
+            },
+            "workflow_id": {
+              "type": "string",
+              "description": "可选的工作流ID，用于关联此执行"
+            },
+            "execution_context": {
+              "type": "string",
+              "description": "脚本执行上下文说明"
+            }
+          },
+          "required": ["claude_response"]
+        }
+      }
+    ],
+    "capabilities": {
+      "tools": {}
+    },
+    "deployment": {
+      "type": "hostable",
+      "requirements": {
+        "python": ">=3.9",
+        "node": ">=16.0.0"
+      },
+      "environment": {
+        "PROJECT_PATH": "./analysis",
+        "PYTHON_PATH": "/usr/bin/python3"
+      }
+    }
+  }
+}

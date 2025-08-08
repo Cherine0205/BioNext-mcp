@@ -2,10 +2,10 @@
   "mcpServers": {
     "bioinformatics-workflow": {
       "command": "node",
-      "args": ["dist/index.js"],
+      "args": ["/Users/zhuzhu/Desktop/mcp/BioNext-mcp/dist/index.js"],
       "cwd": "./",
       "env": {
-        "PROJECT_PATH": "./analysis"
+        "PROJECT_PATH": "/Users/zhuzhu/Desktop/mcp/BioNext-mcp/analysis"
       }
     }
   }

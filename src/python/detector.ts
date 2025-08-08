@@ -26,8 +26,9 @@ export async function detectPythonCommand(): Promise<string> {
     }
   }
   
-  // 如果都不可用，尝试常见的Windows Python安装路径
+  // 尝试常见的Python安装路径（包括macOS miniforge）
   const fullPaths = [
+    // Windows路径
     'C:\\Python39\\python.exe',
     'C:\\Python38\\python.exe',
     'C:\\Python310\\python.exe',
@@ -36,7 +37,12 @@ export async function detectPythonCommand(): Promise<string> {
     'C:\\Users\\%USERNAME%\\AppData\\Local\\Programs\\Python\\Python39\\python.exe',
     'C:\\Users\\%USERNAME%\\AppData\\Local\\Programs\\Python\\Python310\\python.exe',
     'C:\\Users\\%USERNAME%\\AppData\\Local\\Programs\\Python\\Python311\\python.exe',
-    'C:\\Users\\%USERNAME%\\AppData\\Local\\Programs\\Python\\Python312\\python.exe'
+    'C:\\Users\\%USERNAME%\\AppData\\Local\\Programs\\Python\\Python312\\python.exe',
+    // macOS miniforge路径
+    '/Users/zhuzhu/miniforge3/bin/python',
+    '/opt/homebrew/bin/python3',
+    '/usr/local/bin/python3',
+    '/usr/bin/python3'
   ];
   
   for (const fullPath of fullPaths) {

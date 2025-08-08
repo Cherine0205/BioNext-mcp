@@ -79,31 +79,51 @@ function isBioinformaticsScript(code: string): boolean {
     // 生物信息学库
     'biopython', 'pandas', 'numpy', 'matplotlib', 'seaborn', 'scipy',
     'sklearn', 'Bio', 'pysam', 'HTSeq', 'pybedtools', 'plotly', 'bokeh',
+    'scanpy', 'anndata', 'leiden', 'louvain', 'statsmodels', 'networkx',
     
     // 可视化相关
     'plt.', 'pyplot', 'figure', 'subplot', 'plot', 'scatter', 'histogram',
     'heatmap', 'boxplot', 'violinplot', 'barplot', 'lineplot', 'scatterplot',
     'clustermap', 'pairplot', 'distplot', 'jointplot', 'regplot',
     'savefig', 'show()', 'imshow', 'contour', 'pie', 'bar(',
+    'sns.', 'seaborn', 'plotly', 'bokeh',
     
     // 生物信息学术语
     'fastq', 'fasta', 'vcf', 'bam', 'sam', 'bed', 'gtf', 'gff',
     'sequence', 'genome', 'gene', 'protein', 'DNA', 'RNA',
     'alignment', 'blast', 'annotation', 'expression',
     'variant', 'mutation', 'phylogeny', 'assembly',
+    'differential', 'enrichment', 'pathway', 'ontology',
     
     // 常见生物信息学操作
     'SeqIO', 'read_csv', 'read_table', 'clustering', 'pca', 'differential',
     'correlation', 'pathway', 'enrichment', 'ontology',
+    'normalize', 'filter', 'quality', 'control',
     
     // 单细胞分析
     'scanpy', 'anndata', 'adata', 'obs', 'var', 'obsm', 'varm',
     'umap', 'tsne', 'leiden', 'louvain', 'highly_variable',
+    'sc.pp.', 'sc.tl.', 'sc.pl.',
+    
+    // 基因组学
+    'pysam', 'vcf', 'bam', 'sam', 'bed', 'gtf', 'gff',
+    'variant', 'mutation', 'snp', 'indel',
+    
+    // 蛋白质组学
+    'protein', 'peptide', 'proteomics', 'mass', 'spectrometry',
+    
+    // 统计分析
+    't.test', 'wilcoxon', 'anova', 'chi.square', 'correlation',
+    'regression', 'linear', 'logistic',
+    
+    // 机器学习
+    'sklearn', 'random.forest', 'svm', 'kmeans', 'dbscan',
+    'clustering', 'classification', 'regression',
     
     // 文件扩展名
     '.fastq', '.fasta', '.vcf', '.bam', '.sam', '.bed',
     '.gtf', '.gff', '.csv', '.tsv', '.txt', '.h5ad', '.h5',
-    '.png', '.pdf', '.svg', '.jpg', '.jpeg'
+    '.png', '.pdf', '.svg', '.jpg', '.jpeg', '.xlsx'
   ];
   
   const codeUpper = code.toUpperCase();
@@ -177,7 +197,18 @@ function extractDependencies(code: string): string[] {
         'cv2': 'opencv-python',
         'sklearn': 'scikit-learn',
         'PIL': 'Pillow',
-        'skimage': 'scikit-image'
+        'skimage': 'scikit-image',
+        'scanpy': 'scanpy',
+        'anndata': 'anndata',
+        'pysam': 'pysam',
+        'plotly': 'plotly',
+        'bokeh': 'bokeh',
+        'statsmodels': 'statsmodels',
+        'networkx': 'networkx',
+        'leidenalg': 'leidenalg',
+        'louvain': 'python-louvain',
+        'umap': 'umap-learn',
+        'tsne': 'tsne-learn'
       };
       
       const pipPackage = packageMapping[mainPackage] || mainPackage;
