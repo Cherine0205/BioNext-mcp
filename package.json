@@ -1,9 +1,12 @@
 {
   "name": "bioinformatics-mcp-server",
-  "version": "2.2.0",
-  "description": "🧬 生物信息学MCP服务器 - 专为Cursor设计的智能生物数据分析工具",
+  "version": "2.2.1",
+  "description": "🧬 生物信息学MCP服务器 - 专为ModelScope设计的智能生物数据分析工具",
   "type": "module",
   "main": "dist/index.js",
+  "bin": {
+    "bioinformatics-mcp-server": "dist/index.js"
+  },
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
@@ -17,7 +20,7 @@
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0"
   },
-  "keywords": ["mcp", "bioinformatics", "python", "cursor", "single-cell", "genomics", "proteomics"],
+  "keywords": ["mcp", "bioinformatics", "python", "modelscope", "single-cell", "genomics", "proteomics"],
   "author": "BioNext Team",
   "license": "MIT",
   "engines": {
