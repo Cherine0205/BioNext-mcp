@@ -8,7 +8,7 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 
 setup(
     name="bionext-mcp",
-    version="2.2.1",
+    version="2.2.2",
     author="BioNext Team",
     author_email="team@bionext.ai",
     description="🧬 生物信息学MCP服务器 - 专为ModelScope设计的智能生物数据分析工具",

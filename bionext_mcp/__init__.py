@@ -8,7 +8,7 @@ automated bioinformatics analysis workflows.
 import argparse
 from .my_server import mcp
 
-__version__ = "2.2.1"
+__version__ = "2.2.2"
 __author__ = "BioNext Team"
 
 def main():

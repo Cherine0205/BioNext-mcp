@@ -1,6 +1,6 @@
 {
   "name": "bionext-mcp",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "description": "🧬 生物信息学MCP服务器 - 专为ModelScope设计的智能生物数据分析工具",
   "type": "mcp-server",
   "main": "bionext_mcp",
