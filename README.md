@@ -1,267 +1,234 @@
-# BioNext-MCP: 智能生物信息学分析助手
+# 🧬 BioNext MCP Server - 智能生物信息学分析助手
 
-> 通过Claude Desktop进行生物信息学分析的最简单方式 - 只需用自然语言聊天，无需编程！
-
+[![PyPI version](https://badge.fury.io/py/bionext-mcp.svg)](https://badge.fury.io/py/bionext-mcp)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python](https://img.shields.io/badge/Python-3.9+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![ModelScope](https://img.shields.io/badge/ModelScope-Deployed-00C4CC?logo=modelcontextprotocol&logoColor=white)](https://modelscope.cn/)
+[![MCP&Agent挑战赛](https://img.shields.io/badge/MCP%26Agent-挑战赛-red.svg)](https://modelscope.cn/mcp)
 
-[English](README_EN.md) | **中文版**
+## 📋 项目简介
 
-## 🎯 项目简介
+**BioNext MCP Server** 是一个专为 **MCP&Agent挑战赛** 设计的智能生物信息学分析助手，基于Model Context Protocol (MCP) 实现。该服务器使研究人员能够通过自然语言对话与AI助手进行复杂的生物数据分析，无需编程专业知识。
 
-BioNext-MCP是一个专为ModelScope设计的智能生物信息学分析工具，让您通过自然语言对话就能完成复杂的生物信息学分析，无需编写任何代码！
+### 🎯 核心特性
 
-**简单来说：**
-- 🗣️ 用自然语言告诉Claude您想分析什么数据
-- 🤖 Claude自动生成专业的Python分析脚本
-- ⚡ 系统自动执行脚本并显示结果
-- 📊 获得精美的HTML报告和可视化图表
+- **🤖 智能工作流规划**: 自动分析用户需求并创建完整的生物信息学分析工作流
+- **🔧 自动化脚本执行**: 自动检测Python环境，安装依赖包，执行分析脚本
+- **📊 专业报告生成**: 生成美观的HTML执行报告，包含详细的执行统计和结果分析
+- **🔄 工作流调试**: 提供完整的错误诊断和调试建议
+- **🌐 多数据类型支持**: 支持单细胞RNA测序、基因表达、基因组学、蛋白质组学等
 
-## ✨ 核心功能
+### 🧪 应用场景
 
-### 🧬 支持的分析类型
-- **单细胞RNA测序** (scRNA-seq) - 细胞聚类、差异表达、轨迹分析
-- **基因组学** - 变异分析、注释、功能富集
-- **转录组学** - 差异表达、通路分析、共表达网络
-- **蛋白质组学** - 蛋白质鉴定、定量分析
-- **多组学整合** - 数据融合、相关性分析
+- **单细胞RNA测序分析**: 细胞类型鉴定、差异表达分析、轨迹推断
+- **基因表达分析**: 差异基因识别、功能富集分析、通路分析
+- **基因组学分析**: 变异检测、结构变异分析、比较基因组学
+- **蛋白质组学分析**: 蛋白质定量、修饰位点分析、互作网络构建
 
-### 🎨 智能特性
-- **自动环境配置** - 检测Python，自动安装所需包（pandas, numpy, matplotlib等）
-- **UTF-8编码支持** - 完美支持中文字符
-- **可视化优先** - 自动生成图表并在HTML报告中显示
-- **质量保证** - 专注于代码完整性和分析准确性
-- **错误处理** - 智能诊断问题并提供解决方案
-
-## 🚀 快速开始
+## 🚀 部署指南
 
 ### 环境要求
-- **Python**: >= 3.9
-- **Node.js**: >= 16.0.0
+
+- **Python版本**: 3.8 或更高版本
 - **操作系统**: Windows, macOS, Linux
+- **内存**: 建议 4GB 以上
+- **存储**: 建议 2GB 可用空间
 
-### 安装步骤
+### 安装方法
 
-#### 1. 安装Python环境
+#### 方法1: 从PyPI安装（推荐）
 
-**推荐：官方网站安装**
-1. 访问 [https://www.python.org/downloads/](https://www.python.org/downloads/)
-2. 下载Python 3.9或更高版本
-3. **安装时务必勾选"Add Python to PATH"**
-
-**验证安装**
-打开命令提示符并输入：
 ```bash
-python --version
+# 使用pip安装
+pip install bionext-mcp
+
+# 或使用uv安装
+uv add bionext-mcp
 ```
-如果看到版本信息，说明安装成功！
 
-#### 2. 安装BioNext-MCP
+#### 方法2: 从源码安装
 
-**下载项目**
 ```bash
+# 克隆仓库
 git clone https://github.com/Cherine0205/BioNext-mcp.git
 cd BioNext-mcp
+
+# 安装依赖
+pip install -r requirements.txt
+
+# 安装包
+pip install -e .
 ```
 
-**安装依赖**
-```bash
-npm install
-npm run build
-```
+### MCP客户端配置
 
-#### 3. 配置Claude Desktop
+#### Cherry Studio 配置
 
-**找到配置文件**
-- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
-- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- Linux: `~/.config/Claude/claude_desktop_config.json`
-
-**添加配置**
 ```json
 {
-  "mcpServers": {
-    "bioinformatics-workflow": {
-      "command": "node",
-      "args": ["D:\\path\\to\\BioNext-mcp\\dist\\index.js"],
-      "cwd": "D:\\path\\to\\BioNext-mcp",
-      "env": {
-        "PROJECT_PATH": "D:\\path\\to\\your\\analysis\\directory",
-        "PYTHON_PATH": "/usr/bin/python3"
-      }
+  "bionext-mcp": {
+    "command": "python",
+    "args": ["-m", "bionext_mcp"],
+    "env": {
+      "PROJECT_PATH": "./analysis"
     }
   }
 }
 ```
 
-**重要提示：**
-- 替换路径为您的实际安装路径
-- 设置分析目录为您想要保存结果的位置
-- 重启Claude Desktop
+#### 使用uvx运行（推荐）
 
-## 💡 使用方法
-
-### 基本对话流程
-
-1. **描述您的分析需求**
-```
-我有一个单细胞RNA测序数据文件data.h5ad，想要进行细胞聚类分析和差异表达分析
+```json
+{
+  "bionext-mcp": {
+    "command": "uvx",
+    "args": ["bionext-mcp"]
+  }
+}
 ```
 
-2. **Claude将自动生成分析脚本并执行**
-3. **获得详细的HTML报告**，包括：
-   - 执行结果和统计信息
-   - 生成的图表和可视化
-   - 完整的分析日志
+### 本地测试
 
-### 实际示例
+```bash
+# 以模块运行
+python -m bionext_mcp
 
-#### 🧪 单细胞分析
-```
-请帮我分析这个scRNA-seq数据：
-- 文件：C:\data\pbmc3k.h5ad
-- 需求：质量控制、标准化、聚类、标记基因识别
-- 输出：UMAP图、聚类热图、差异表达基因列表
+# 或使用uvx
+uvx bionext-mcp
 ```
 
-#### 🧬 基因表达分析
-```
-我有两组RNA-seq表达矩阵：
-- 对照组：control_samples.csv
-- 处理组：treatment_samples.csv
-- 分析：差异表达、GO富集、KEGG通路分析
-- 可视化：火山图、热图、通路图
-```
+## 💡 使用示例
 
-#### 📊 数据探索
-```
-帮我探索这个基因表达数据集：
-- 文件：gene_expression.csv
-- 需求：数据概览、相关性分析、PCA分析
-- 生成：统计摘要、相关性热图、PCA图
-```
+### 示例1: 单细胞RNA测序分析
 
-## 🎨 精美报告
+**用户请求**: "请帮我分析单细胞RNA测序数据，识别细胞类型并进行差异表达分析"
 
-### HTML报告特性
-- **📊 可视化画廊** - 自动检测并显示生成的图像
-- **🔍 交互式查看** - 点击图像可缩放查看
-- **📝 详细日志** - 完整的执行过程记录
-- **📈 统计摘要** - 脚本执行状态和性能指标
+**MCP工具调用**:
+```python
+# 1. 分析任务
+result = analyze_bioinformatics_task(
+    user_request="单细胞RNA测序分析，识别细胞类型并进行差异表达分析",
+    data_files=["scRNA_data.h5ad"],
+    additional_context="数据包含10000个细胞，20000个基因"
+)
 
-### 自动浏览器打开
-- 分析完成后报告自动在浏览器中打开
-- 如果未自动打开，手动打开生成的HTML文件
-
-## 🛠️ 常见问题
-
-### Python相关问题
-**Q: "Python not found"错误？**
-A: 确保Python已安装并添加到PATH环境变量
-
-**Q: 包安装失败？**
-A: 系统会自动重试，或手动运行`pip install package_name`
-
-### 分析相关问题
-**Q: 脚本执行失败？**
-A: 
-- 检查数据文件路径是否正确
-- 确认数据格式符合要求
-- 查看错误日志获取详细信息
-
-**Q: 没有生成HTML报告？**
-A: HTML报告只有在所有脚本成功执行时才会生成，先修复执行错误
-
-### 数据格式
-**Q: 支持哪些数据格式？**
-A: 
-- CSV, TSV, Excel文件
-- HDF5格式 (.h5, .h5ad)
-- FASTA, FASTQ序列文件
-- VCF变异文件
-- 其他常见生物信息学格式
-
-## 🎯 使用技巧
-
-### 1. 清晰描述需求
-```
-✅ 好的描述：
-"分析单细胞数据，进行质量控制（过滤低质量细胞）、标准化、降维（PCA+UMAP）、聚类（leiden算法）、为每个聚类找到标记基因"
-
-❌ 模糊描述：
-"分析这个数据"
+# 2. 执行Claude生成的脚本
+execution_result = execute_claude_script(
+    claude_response="```python\nimport scanpy as sc\n# 分析代码...\n```",
+    workflow_id="scRNA_analysis_001"
+)
 ```
 
-### 2. 提供完整文件路径
+**输出结果**: 
+- 自动生成的分析工作流
+- 细胞类型聚类结果
+- 差异表达基因列表
+- 可视化图表
+- 完整的HTML执行报告
+
+### 示例2: 基因表达差异分析
+
+**用户请求**: "比较对照组和实验组的基因表达差异，找出显著上调的基因"
+
+**执行流程**:
+1. 自动检测Python环境
+2. 安装必要的包（pandas, numpy, scipy等）
+3. 执行差异分析脚本
+4. 生成火山图和热图
+5. 输出差异基因列表
+
+### 示例3: 工作流调试
+
+当分析过程中遇到问题时：
+
+```python
+# 调试工作流
+debug_info = debug_workflow(
+    workflow_id="failed_workflow_123",
+    error_context="脚本执行失败，提示模块导入错误"
+)
 ```
-✅ 使用绝对路径：
-"C:\Users\username\data\sample.h5ad"
 
-❌ 相对路径可能失败：
-"./data/sample.h5ad"
+**调试输出**:
+- 工作流状态检查
+- 错误文件分析
+- 环境依赖验证
+- 具体的解决建议
+
+## 🔧 核心工具说明
+
+### 1. analyze_bioinformatics_task
+- **功能**: 分析用户需求并创建生物信息学工作流
+- **输入**: 用户请求、数据文件列表、额外上下文
+- **输出**: 工作流ID、分析计划、Claude提示
+
+### 2. debug_workflow
+- **功能**: 工作流调试和错误诊断
+- **输入**: 工作流ID、错误上下文
+- **输出**: 调试报告、问题诊断、解决建议
+
+### 3. execute_claude_script
+- **功能**: 自动执行Claude生成的Python脚本
+- **输入**: Claude响应内容、工作流ID、执行上下文
+- **输出**: 执行结果、HTML报告、错误信息
+
+## 📊 执行报告示例
+
+每次脚本执行后，系统会自动生成专业的HTML报告，包含：
+
+- **执行统计**: 总脚本数、成功/失败数量、成功率
+- **详细结果**: 每个脚本的输出、错误信息、执行状态
+- **文件路径**: 生成的脚本文件和分析结果位置
+- **下一步建议**: 基于执行结果的后续操作指导
+
+## 🛠️ 开发信息
+
+### 技术架构
+- **MCP框架**: FastMCP
+- **构建工具**: Hatchling
+- **包管理**: pip/uv
+- **报告生成**: HTML + CSS
+
+### 依赖包
+- **核心**: fastmcp>=0.1.0
+- **兼容性**: pathlib2 (Python < 3.4)
+- **构建**: hatchling
+
+### 项目结构
+```
+bionext_mcp/
+├── __init__.py          # 包初始化
+├── __main__.py          # 入口点
+├── my_server.py         # MCP服务器实现
+└── dist/                # 构建产物
+    ├── *.whl            # 轮子包
+    └── *.tar.gz         # 源码包
 ```
 
-### 3. 指定输出要求
-```
-✅ 清晰的输出：
-"生成UMAP图、热图，保存结果到CSV文件"
+## 🤝 贡献指南
 
-❌ 不清晰：
-"做一些可视化"
-```
+我们欢迎社区贡献！如果您想参与项目开发：
 
-### 4. 分步分析
-对于复杂分析，分成多个对话：
-1. 第一步：数据加载和质量控制
-2. 第二步：标准化和降维
-3. 第三步：聚类和可视化
-4. 第四步：差异分析
-
-## 🔧 ModelScope部署
-
-### 部署配置
-本项目已针对ModelScope平台进行了优化，包含以下特性：
-
-- **托管部署支持** - 支持在ModelScope平台上直接部署
-- **环境变量配置** - 完整的Python和Node.js环境配置
-- **自动依赖管理** - 自动安装所需的Python包和Node.js模块
-- **错误处理机制** - 完善的错误诊断和解决方案
-
-### 部署要求
-- **Python**: >= 3.9
-- **Node.js**: >= 16.0.0
-- **内存**: >= 2GB RAM
-- **存储**: >= 1GB 可用空间
-
-### 环境变量
-- `PROJECT_PATH`: 分析结果输出路径
-- `PYTHON_PATH`: Python解释器路径
-- `NODE_ENV`: Node.js运行环境
-- `PYTHON_VERSION`: Python版本要求
-
-## 🎉 开始您的生物信息学之旅
-
-现在您已经准备好了！打开Claude Desktop，告诉它您想分析什么数据，让AI为您处理复杂的生物信息学分析！
-
----
-
-## 📞 获取帮助
-
-- **GitHub Issues**: 报告问题或提出改进建议
-- **文档**: 查看详细使用文档
-- **示例**: 参考示例分析案例
-
-**记住：** 用自然语言描述您的分析需求，Claude会为您处理所有技术细节！🚀
+1. Fork 本仓库
+2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 开启 Pull Request
 
 ## 📄 许可证
 
-本项目采用MIT许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
 
-## 🤝 贡献
+## 📞 支持与反馈
 
-欢迎提交Issue和Pull Request来改进这个项目！
+- **项目地址**: [https://github.com/Cherine0205/BioNext-mcp](https://github.com/Cherine0205/BioNext-mcp)
+- **问题反馈**: [https://github.com/Cherine0205/BioNext-mcp/issues](https://github.com/Cherine0205/BioNext-mcp/issues)
+- **PyPI包**: [https://pypi.org/project/bionext-mcp/](https://pypi.org/project/bionext-mcp/)
+- **魔搭MCP广场**: [https://modelscope.cn/mcp](https://modelscope.cn/mcp)
+
+## 🙏 致谢
+
+感谢 **MCP&Agent挑战赛** 提供的平台和机会，让我们能够为生物信息学社区贡献这个智能分析工具。
 
 ---
 
-**BioNext-MCP团队** - 让生物信息学分析变得简单易用！
+**BioNext MCP Server** - 让生物信息学分析更智能、更简单！🧬✨

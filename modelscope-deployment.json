@@ -1,35 +1,31 @@
 {
-  "name": "bioinformatics-workflow",
-  "version": "2.2.0",
+  "name": "bionext-mcp",
+  "version": "2.2.1",
   "description": "🧬 生物信息学MCP服务器 - 专为ModelScope设计的智能生物数据分析工具",
   "type": "mcp-server",
-  "main": "dist/index.js",
+  "main": "bionext_mcp",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "tsc && node dist/index.js",
-    "install-deps": "npm install && npm run build"
+    "start": "python -m bionext_mcp",
+    "dev": "python -m bionext_mcp",
+    "install-deps": "pip install -r requirements.txt"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^0.5.0"
+    "fastmcp": ">=0.1.0",
+    "pathlib2": "python_version<'3.4'"
   },
-  "devDependencies": {
-    "@types/node": "^20.0.0",
-    "typescript": "^5.0.0"
-  },
-  "keywords": ["mcp", "bioinformatics", "python", "single-cell", "genomics", "proteomics", "modelscope"],
+  "keywords": ["mcp", "bioinformatics", "python", "single-cell", "genomics", "proteomics", "modelscope", "MCP&Agent挑战赛"],
   "author": "BioNext Team",
   "license": "MIT",
   "engines": {
-    "node": ">=16.0.0"
+    "python": ">=3.8"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/bioinformatics-mcp-server.git"
+    "url": "https://github.com/Cherine0205/BioNext-mcp.git"
   },
-  "homepage": "https://modelscope.cn/mcp/servers/bioinformatics-workflow",
+  "homepage": "https://modelscope.cn/mcp/servers/bionext-mcp",
   "bugs": {
-    "url": "https://github.com/your-username/bioinformatics-mcp-server/issues"
+    "url": "https://github.com/Cherine0205/BioNext-mcp/issues"
   },
   "mcp": {
     "tools": [
@@ -99,19 +95,22 @@
         }
       }
     ],
-    "capabilities": {
-      "tools": {}
-    },
-    "deployment": {
-      "type": "hostable",
-      "requirements": {
-        "python": ">=3.9",
-        "node": ">=16.0.0"
-      },
-      "environment": {
-        "PROJECT_PATH": "./analysis",
-        "PYTHON_PATH": "/usr/bin/python3"
+    "resources": [
+      {
+        "name": "greeting",
+        "description": "个性化问候语生成器"
       }
+    ]
+  },
+  "deployment": {
+    "type": "hosted",
+    "requirements": {
+      "python": ">=3.8",
+      "memory": ">=2GB",
+      "storage": ">=1GB"
+    },
+    "environment": {
+      "PROJECT_PATH": "/tmp/analysis"
     }
   }
 }
