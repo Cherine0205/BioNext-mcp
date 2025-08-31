@@ -794,5 +794,13 @@ def get_greeting(name: str) -> str:
     """生成个性化问候语"""
     return f"您好, {name}! 欢迎使用BioNext MCP&Agent挑战赛生物信息学分析工具，当前支持{len(mcp.tools)}个核心工具"
 
+def main():
+    """MCP服务器主入口函数"""
+    try:
+        mcp.run(transport="stdio")
+    except Exception as e:
+        print(f"Error starting MCP server: {e}", file=sys.stderr)
+        sys.exit(1)
+
 if __name__ == "__main__":
-    mcp.run(transport="stdio")
+    main()

@@ -1,11 +1,16 @@
 {
   "name": "bionext-mcp",
-  "version": "2.2.2",
+  "version": "2.2.1",
   "description": "🧬 生物信息学MCP服务器 - 专为ModelScope设计的智能生物数据分析工具",
   "type": "mcp-server",
   "main": "bionext_mcp",
+  "entry_points": {
+    "console_scripts": [
+      "bionext-mcp=bionext_mcp.my_server:mcp.run"
+    ]
+  },
   "scripts": {
-    "start": "python -m bionext_mcp",
+    "start": "python -c \"from bionext_mcp.my_server import mcp; mcp.run(transport='stdio')\"",
     "dev": "python -m bionext_mcp",
     "install-deps": "pip install -r requirements.txt"
   },

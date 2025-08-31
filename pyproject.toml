@@ -32,7 +32,10 @@ dependencies = [
 bionext-mcp = "bionext_mcp:main"
 
 [project.entry-points."mcp.server"]
-bionext-mcp = "bionext_mcp:main"
+bionext-mcp = "bionext_mcp.my_server:mcp"
+
+[project.entry-points."console_scripts"]
+bionext-mcp = "bionext_mcp.my_server:main"
 
 [project.urls]
 Homepage = "https://github.com/Cherine0205/BioNext-mcp"
