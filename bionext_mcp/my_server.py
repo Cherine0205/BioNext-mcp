@@ -797,9 +797,18 @@ def get_greeting(name: str) -> str:
 def main():
     """MCP服务器主入口函数"""
     try:
+        # 设置环境变量
+        os.environ.setdefault('PROJECT_PATH', './analysis')
+        
+        # 确保分析目录存在
+        Path(PROJECT_PATH).mkdir(exist_ok=True)
+        
+        # 启动MCP服务器
         mcp.run(transport="stdio")
     except Exception as e:
         print(f"Error starting MCP server: {e}", file=sys.stderr)
+        print(f"Current working directory: {os.getcwd()}", file=sys.stderr)
+        print(f"Python path: {sys.path}", file=sys.stderr)
         sys.exit(1)
 
 if __name__ == "__main__":
